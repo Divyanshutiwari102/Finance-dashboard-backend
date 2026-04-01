@@ -227,4 +227,7 @@ Global exception response format:
 - BCrypt password hashing
 - SQL logging configurable via `application.properties`
 
----
+---## Author 
+
+Divyanshu Tiwari  
+Email: divyanshutiwari337@gmail.com
