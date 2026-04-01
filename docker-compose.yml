@@ -1,21 +1,20 @@
 version: "3.9"
 
 services:
-  mysql:
-    image: mysql:8.3
-    container_name: finance-mysql
+  postgres:
+    image: postgres:18
+    container_name: finance-postgres
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: finance_dashboard
-      MYSQL_USER: finance_user
-      MYSQL_PASSWORD: finance_pass
+      POSTGRES_DB: finance_dashboard
+      POSTGRES_USER: finance_user
+      POSTGRES_PASSWORD: finance_pass
     ports:
-      - "3307:3306"
+      - "5433:5432"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      test: ["CMD-SHELL", "pg_isready -U finance_user -d finance_dashboard"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -25,17 +24,20 @@ services:
     container_name: finance-dashboard-app
     restart: always
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/finance_dashboard?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/finance_dashboard
       SPRING_DATASOURCE_USERNAME: finance_user
       SPRING_DATASOURCE_PASSWORD: finance_pass
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
       SPRING_SQL_INIT_MODE: always
+      APP_JWT_SECRET: your-super-secure-32-char-minimum-secret-key-here
+      APP_JWT_EXPIRATION_MS: "86400000"
 
 volumes:
-  mysql_data:
+  postgres_data:
